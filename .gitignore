@@ -1,0 +1,54 @@
+# 1. OS Files (Windows & macOS)
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# 2. Build & Compilation Outputs
+build/
+bin/
+obj/
+Debug/
+Release/
+x64/
+x86/
+*.elf
+*.bin
+*.hex
+*.map
+*.o
+*.obj
+*.a
+*.lib
+*.exp
+*.ilk
+*.pdb
+
+# 3. CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+compile_commands.json
+_deps/
+
+# 4. STM32CubeIDE / Eclipse
+.project
+.cproject
+.mxproject
+.settings/
+.classpath
+*.launch
+
+# 5. Visual Studio Code
+.vscode/ipch/
+.vscode/*.log
+.vscode/settings.json
