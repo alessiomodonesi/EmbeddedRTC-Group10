@@ -41,6 +41,7 @@ compile_commands.json
 _deps/
 
 # 4. STM32CubeIDE / Eclipse
+.metadata
 .project
 .cproject
 .mxproject
