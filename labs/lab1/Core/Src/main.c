@@ -26,7 +26,7 @@
 /*** NEEDED FOR ENABLING PRINTF ***/
 #include <stdio.h>
 #include <string.h>
-#include "print_utils.h"
+#include "print_utils.h" //_write fun
 
 /*** NEEDED FOR COMMUNICATING WITH THE SX1509 ***/
 #include "SX1509_Registers.h"
@@ -107,7 +107,10 @@ static void MX_USART6_UART_Init(void);
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	printf("Interrupt on pin (%d).\n", GPIO_Pin);
-
+	uint8_t data_col;
+	uint8_t data_row;
+	uint8_t temp = 0;
+	char key = 0;
 	if (GPIO_Pin == GPIO_PIN_4)
 	{
     /* Keypad interrupt */
@@ -117,6 +120,38 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
      * If you don't read the registers, the interrupt will be NOT triggered again.
      * For an example of how to read/write the registers, see the Init_SX1509 function in the SX1509_Utils.h file.
      */
+	  HAL_I2C_Mem_Read(&hi2c1, SX1509_I2C_ADDR2 << 1, REG_KEY_DATA_1, 1, &data_col, 1, 1000);
+	  HAL_I2C_Mem_Read(&hi2c1, SX1509_I2C_ADDR2 << 1, REG_KEY_DATA_2, 1, &data_row, 1, 1000);
+
+	  uint8_t op1 = data_col & 0b00001111;
+	  uint8_t op2 = (data_row & 0b00001111) << 4;
+	  temp = op1 + op2;
+
+	  printf("op1: %d, binary: %x\n", op1, op1);
+	  printf("op2: %d, binary: %x\n", op2, op2);
+	  printf("temp: %d, binary: %x\n", temp, temp);
+	  switch (temp) {
+		  case 0b01110111: key = '1'; break;
+		  case 0b10111011: key = '5'; break;
+		  case 0b11011101: key = '9'; break;
+		  case 0b11101110: key = 'D'; break;
+		  case 0b01111011: key = '2'; break;
+		  case 0b01111101: key = '3'; break;
+		  case 0b01111110: key = 'A'; break;
+		  case 0b10110111: key = '4'; break;
+		  case 0b10111101: key = '6'; break;
+		  case 0b10111110: key = 'B'; break;
+		  case 0b11010111: key = '7'; break;
+		  case 0b11011011: key = '8'; break;
+		  case 0b11011110: key = 'C'; break;
+		  case 0b11100111: key = '*'; break;
+		  case 0b11101011: key = '0'; break;
+		  case 0b11101101: key = '#'; break;
+		  default: printf("AAAAAAAAAAAAAAAA\n"); break;
+	  }
+ 	  printf("Column data: %d\n", data_col);
+	  printf("Row data: %d\n", data_row);
+	  printf("The pressed key is %c\n", key);
 	  printf("Interrupt from the keypad\n");
 	}
 
@@ -1185,7 +1220,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
 /* USER CODE END 4 */
 
 /**
