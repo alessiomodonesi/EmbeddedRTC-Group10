@@ -127,34 +127,34 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	  // temp is build s.t.:
 	  // --row-- | --col--
 	  //  0000   |  0000
-	  uint8_t op1 = (data_col & 0b00001111);
-	  uint8_t op2 = (data_row & 0b00001111) << 4;
-	  result = op1 + op2;
+	  uint8_t row_bits = (data_col & 0b00001111);
+	  uint8_t col_bits = (data_row & 0b00001111) << 4;
+	  result = row_bits + col_bits;
 
 	  switch (result) {
-	  	  // first row 0b0111
-		  case 0b01110111: key = 'A'; break;
-		  case 0b01111011: key = '3'; break;
-		  case 0b01111101: key = '2'; break;
-		  case 0b01111110: key = '1'; break;
+	    // first row 0b0111
+		  case 0b01110111: key = keypadLayout[3][3]; break; // A
+		  case 0b01111011: key = keypadLayout[3][2]; break; // 3
+		  case 0b01111101: key = keypadLayout[3][1]; break; // 2
+		  case 0b01111110: key = keypadLayout[3][0]; break; // 1
 
 		  // second row 0b1011
-		  case 0b10110111: key = 'B'; break;
-		  case 0b10111011: key = '6'; break;
-		  case 0b10111101: key = '5'; break;
-		  case 0b10111110: key = '4'; break;
+		  case 0b10110111: key = keypadLayout[2][3]; break; // B
+		  case 0b10111011: key = keypadLayout[2][2]; break; // 6
+		  case 0b10111101: key = keypadLayout[2][1]; break; // 5
+		  case 0b10111110: key = keypadLayout[2][0]; break; // 4
 
 		  // third row 0b1101
-		  case 0b11010111: key = 'C'; break;
-		  case 0b11011011: key = '9'; break;
-		  case 0b11011101: key = '8'; break;
-		  case 0b11011110: key = '7'; break;
+		  case 0b11010111: key = keypadLayout[1][3]; break; // C
+		  case 0b11011011: key = keypadLayout[1][2]; break; // 9
+		  case 0b11011101: key = keypadLayout[1][1]; break; // 8
+		  case 0b11011110: key = keypadLayout[1][0]; break; // 7
 
 		  // fourth row 0b1110
-		  case 0b11100111: key = 'D'; break;
-		  case 0b11101011: key = '#'; break;
-		  case 0b11101101: key = '0'; break;
-		  case 0b11101110: key = '*'; break;
+		  case 0b11100111: key = keypadLayout[0][3]; break; // D
+		  case 0b11101011: key = keypadLayout[0][2]; break; // #
+		  case 0b11101101: key = keypadLayout[0][1]; break; // 0
+		  case 0b11101110: key = keypadLayout[0][0]; break; // *
 
 		  default: printf("Error in the switch-case\n"); break;
 	  }
