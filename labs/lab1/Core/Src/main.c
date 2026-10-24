@@ -103,7 +103,7 @@ static void MX_USART6_UART_Init(void);
 /* USER CODE BEGIN 0 */
 
 
-
+// Exercise 1, 2, ...
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	printf("Interrupt on pin (%d).\n", GPIO_Pin);
@@ -124,7 +124,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	  HAL_I2C_Mem_Read(&hi2c1, SX1509_I2C_ADDR2 << 1, REG_KEY_DATA_1, 1, &data_col, 1, 1000);
 	  HAL_I2C_Mem_Read(&hi2c1, SX1509_I2C_ADDR2 << 1, REG_KEY_DATA_2, 1, &data_row, 1, 1000);
 
-	  // temp is build s.t.:
+	  // result is build s.t.:
 	  // --row-- | --col--
 	  //  0000   |  0000
 	  uint8_t row_bits = (data_col & 0b00001111);
@@ -132,7 +132,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	  result = row_bits + col_bits;
 
 	  switch (result) {
-	    // first row 0b0111
+	      // first row 0b0111
 		  case 0b01110111: key = keypadLayout[3][3]; break; // A
 		  case 0b01111011: key = keypadLayout[3][2]; break; // 3
 		  case 0b01111101: key = keypadLayout[3][1]; break; // 2
@@ -175,7 +175,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  uint8_t line_data = 0; // for exercise 3
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -229,6 +229,13 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	// Exercise 3
+	if (HAL_I2C_Mem_Read(&hi2c1, SX1509_I2C_ADDR1 << 1, REG_DATA_B, 1, &line_data, 1, 1000) == HAL_OK)
+		printf("Line sensor: 0x%02X\n", line_data); // %02X: hex uppercase, 2 digits, zero-padded
+	else
+	    printf("Line sensor reading error\n");
+
+	HAL_Delay(100);  // polling every 100 ms
   }
   /* USER CODE END 3 */
 }
