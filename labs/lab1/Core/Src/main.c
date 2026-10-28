@@ -31,6 +31,8 @@
 /*** NEEDED FOR COMMUNICATING WITH THE SX1509 ***/
 #include "SX1509_Registers.h"
 #include "SX1509_Utils.h"
+
+#include <stdbool.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,7 +42,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define EXERCISE 5 // selects what the main loop runs: 3 (line sensor polling) or 5 (LED blinking)
 
+#define MAX_BLINK_HZ 500 // upper bound for the frequency typed on the keypad
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -75,6 +79,11 @@ const char keypadLayout[4][4] = {
     {'7', '8', '9', 'C'},
     {'4', '5', '6', 'B'},
     {'1', '2', '3', 'A'}};
+
+// Exercise 5
+volatile uint32_t ledFrequencyHz = 1; // blinking frequency
+uint32_t typedFrequency = 0;          // digits typed so far
+bool isTyping = false;                // true after the first digit of a new frequency
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -103,12 +112,54 @@ static void MX_USART6_UART_Init(void);
 /* USER CODE BEGIN 0 */
 
 
+// Exercise 5
+// Easy way: A, B, C, D are fixed presets (1, 2, 5, 10 Hz)
+// Hard way: type the frequency with the digits and confirm with '#', '*' clears
+// 0# switches the LED off
+void setBlinkFrequency(char key)
+{
+	switch (key) {
+		case 'A': ledFrequencyHz = 1;  break;
+		case 'B': ledFrequencyHz = 2;  break;
+		case 'C': ledFrequencyHz = 5;  break;
+		case 'D': ledFrequencyHz = 10; break;
+		case '*':
+			typedFrequency = 0;
+			isTyping = false;
+			printf("Input cleared\n");
+			return;
+		case '#':
+			if (!isTyping)
+            {
+				return;
+            }
+			ledFrequencyHz = typedFrequency;
+			typedFrequency = 0;
+			isTyping = false;
+			break;
+		default:
+			if (key < '0' || key > '9')
+            {
+				return;
+            }
+			typedFrequency = typedFrequency * 10 + (key - '0');
+			if (typedFrequency > MAX_BLINK_HZ)
+            {
+				typedFrequency = MAX_BLINK_HZ;
+            }
+			isTyping = true;
+			printf("Typed: %lu\n", typedFrequency);
+			return;
+	}
+	printf("Blinking frequency: %lu Hz\n", ledFrequencyHz);
+}
+
 // Exercise 1, 2, ...
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	printf("Interrupt on pin (%d).\n", GPIO_Pin);
-	uint8_t data_col; 	// buffer for the column's data
-	uint8_t data_row; 	// buffer for the row's data
+	uint8_t data_col = 0xFF; 	// buffer for the column's data (0xFF = no key, if the read fails)
+	uint8_t data_row = 0xFF;	// buffer for the row's data
 	uint8_t result = 0; // buffer for the bitwise operations
 	char key = 0;		// pressed button on the keypad
 
@@ -163,6 +214,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	  printf("Row data: %d\n", data_row);
 	  printf("The pressed key is %c\n", key);
 	  printf("Interrupt from the keypad\n");
+
+	  setBlinkFrequency(key); // Exercise 5
 	}
 }
 
@@ -889,10 +942,6 @@ static void MX_TIM9_Init(void)
   sConfigOC.Pulse = 0;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim9, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
   if (HAL_TIM_PWM_ConfigChannel(&htim9, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     Error_Handler();
@@ -1134,7 +1183,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, GPIO_OUT_SPI_CS_SDCARD_Pin|GPIO_OUT_SPI_CS_LCD_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, GPIO_OUT_SPI_CS_SDCARD_Pin|GPIO_OUT_SPI_CS_LCD_Pin|BLINKING_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|LD2_Pin, GPIO_PIN_RESET);
@@ -1142,8 +1191,8 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOG, GPIO_PIN_6, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : GPIO_OUT_SPI_CS_SDCARD_Pin GPIO_OUT_SPI_CS_LCD_Pin */
-  GPIO_InitStruct.Pin = GPIO_OUT_SPI_CS_SDCARD_Pin|GPIO_OUT_SPI_CS_LCD_Pin;
+  /*Configure GPIO pins : GPIO_OUT_SPI_CS_SDCARD_Pin GPIO_OUT_SPI_CS_LCD_Pin BLINKING_LED_Pin */
+  GPIO_InitStruct.Pin = GPIO_OUT_SPI_CS_SDCARD_Pin|GPIO_OUT_SPI_CS_LCD_Pin|BLINKING_LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
