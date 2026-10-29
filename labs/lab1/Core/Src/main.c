@@ -219,6 +219,19 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	}
 }
 
+// Exercise 4
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if (htim->Instance == TIM6) // check for TIM6 interrupt
+	{
+		// logic directly from Exercise 3
+		if (HAL_I2C_Mem_Read(&hi2c1, SX1509_I2C_ADDR1 << 1, REG_DATA_B, 1, &line_data, 1, 1000) == HAL_OK)
+				printf("Line sensor: 0x%02X\n", line_data); // %02X: hex uppercase, 2 digits, zero-padded
+			else
+			    printf("Line sensor reading error\n");
+	}
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -270,6 +283,8 @@ int main(void)
   HAL_GPIO_WritePin(GPIO_OUT_SPI_CS_LCD_GPIO_Port, GPIO_OUT_SPI_CS_LCD_Pin, GPIO_PIN_SET);
 
   Init_SX1509();
+
+  HAL_TIM_Base_Start_IT(&htim6); // Exercise 4 init
 
   printf("Ready\n");
 
