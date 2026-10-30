@@ -1,55 +1,74 @@
-# 1. OS Files (Windows & macOS)
-# macOS
-.DS_Store
+# OS generated files
 .AppleDouble
+.DS_Store
 .LSOverride
-Icon?
 ._*
-
-# Windows
+$RECYCLE.BIN/
+Desktop.ini
+Icon?
 Thumbs.db
 ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
 
-# 2. Build & Compilation Outputs
-build/
-bin/
-obj/
+# Build & compilation outputs
 Debug/
 Release/
+bin/
+build/
+obj/
 x64/
 x86/
-*.elf
+*.a
 *.bin
+*.elf
+*.exp
 *.hex
+*.ilk
+*.lib
 *.map
 *.o
 *.obj
-*.a
-*.lib
-*.exp
-*.ilk
 *.pdb
 
-# 3. CMake
+# CMake
 CMakeCache.txt
 CMakeFiles/
-cmake_install.cmake
-Makefile
-compile_commands.json
 _deps/
+cmake_install.cmake
+compile_commands.json
+Makefile
 
-# 4. STM32CubeIDE / Eclipse
-.metadata
-.project
-.cproject
-.mxproject
-.settings/
+# STM32CubeIDE & Eclipse
 .classpath
+.cproject
+.metadata
+.mxproject
+.project
+.settings/
 *.launch
 
-# 5. Visual Studio Code
-.vscode/ipch/
+# Editors & IDEs
+.idea/
+.vscode/
 .vscode/*.log
+.vscode/ipch/
 .vscode/settings.json
+
+# LaTeX output & auxiliary files
+*~-blx.bib
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.gz
+*.lof
+*.log
+*.lot
+*.nav
+*.out
+*.run.xml
+*.snm
+*.synctex.gz
+*.toc
+*.vrb
