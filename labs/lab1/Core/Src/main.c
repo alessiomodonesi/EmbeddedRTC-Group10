@@ -44,7 +44,7 @@
 /* USER CODE BEGIN PD */
 #define EXERCISE 5 // selects what the main loop runs: 3 (line sensor polling) or 5 (LED blinking)
 
-#define MAX_BLINK_HZ 500 // upper bound for the frequency typed on the keypad
+#define MAX_BLINK_HZ 100 // upper bound for the frequency typed on the keypad
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -63,6 +63,7 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim5;
+TIM_HandleTypeDef htim6;
 TIM_HandleTypeDef htim8;
 TIM_HandleTypeDef htim9;
 
@@ -105,6 +106,7 @@ static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM9_Init(void);
 static void MX_USART6_UART_Init(void);
+static void MX_TIM6_Init(void);
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
 
@@ -154,14 +156,14 @@ void setBlinkFrequency(char key)
 	printf("Blinking frequency: %lu Hz\n", ledFrequencyHz);
 }
 
-// Exercise 1, 2, ...
+// Exercise 1 and 2
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	printf("Interrupt on pin (%d).\n", GPIO_Pin);
 	uint8_t data_col = 0xFF; 	// buffer for the column's data (0xFF = no key, if the read fails)
 	uint8_t data_row = 0xFF;	// buffer for the row's data
-	uint8_t result = 0; // buffer for the bitwise operations
-	char key = 0;		// pressed button on the keypad
+	uint8_t result = 0; 		// buffer for the bitwise operations
+	char key = 0;				// pressed button on the keypad
 
 	if (GPIO_Pin == GPIO_PIN_4)
 	{
@@ -215,21 +217,30 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	  printf("The pressed key is %c\n", key);
 	  printf("Interrupt from the keypad\n");
 
+#if EXERCISE == 5
 	  setBlinkFrequency(key); // Exercise 5
+#endif
 	}
 }
 
 // Exercise 4
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	if (htim->Instance == TIM6) // check for TIM6 interrupt
-	{
-		// logic directly from Exercise 3
-		if (HAL_I2C_Mem_Read(&hi2c1, SX1509_I2C_ADDR1 << 1, REG_DATA_B, 1, &line_data, 1, 1000) == HAL_OK)
+#if EXERCISE == 4
+	  	uint8_t line_data = 0;
+		if (htim->Instance == TIM6) // check for TIM6 interrupt
+		{
+			// logic directly from Exercise 3
+			if (HAL_I2C_Mem_Read(&hi2c1, SX1509_I2C_ADDR1 << 1, REG_DATA_B, 1, &line_data, 1, 1000) == HAL_OK)
+			{
 				printf("Line sensor: 0x%02X\n", line_data); // %02X: hex uppercase, 2 digits, zero-padded
+			}
 			else
+			{
 			    printf("Line sensor reading error\n");
-	}
+			}
+		}
+#endif
 }
 
 /* USER CODE END 0 */
@@ -241,7 +252,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+#if EXERCISE == 3
   uint8_t line_data = 0; // for exercise 3
+#endif
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -277,6 +290,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM9_Init();
   MX_USART6_UART_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
 
   /* Disable LCD SPI SS */
@@ -284,7 +298,9 @@ int main(void)
 
   Init_SX1509();
 
+#if EXERCISE == 4
   HAL_TIM_Base_Start_IT(&htim6); // Exercise 4 init
+#endif
 
   printf("Ready\n");
 
@@ -297,13 +313,23 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	// Exercise 3
-	if (HAL_I2C_Mem_Read(&hi2c1, SX1509_I2C_ADDR1 << 1, REG_DATA_B, 1, &line_data, 1, 1000) == HAL_OK)
-		printf("Line sensor: 0x%02X\n", line_data); // %02X: hex uppercase, 2 digits, zero-padded
-	else
-	    printf("Line sensor reading error\n");
-
-	HAL_Delay(100);  // polling every 100 ms
+#if EXERCISE == 3
+		if (HAL_I2C_Mem_Read(&hi2c1, SX1509_I2C_ADDR1 << 1, REG_DATA_B, 1, &line_data, 1, 1000) == HAL_OK)
+		{
+			printf("Line sensor: 0x%02X\n", line_data); // %02X: hex uppercase, 2 digits, zero-padded
+		}
+		else
+		{
+			printf("Line sensor reading error\n");
+		}
+		HAL_Delay(100);  // polling every 100 ms
+#elif EXERCISE == 5
+	if (!typedFrequency || !ledFrequencyHz)
+	{
+		HAL_GPIO_TogglePin(BLINKING_LED_GPIO_Port, BLINKING_LED_Pin);
+		HAL_Delay(1000 / (2 * ledFrequencyHz));
+	}
+#endif
   }
   /* USER CODE END 3 */
 }
@@ -831,6 +857,44 @@ static void MX_TIM5_Init(void)
 
   /* USER CODE END TIM5_Init 2 */
   HAL_TIM_MspPostInit(&htim5);
+
+}
+
+/**
+  * @brief TIM6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM6_Init(void)
+{
+
+  /* USER CODE BEGIN TIM6_Init 0 */
+
+  /* USER CODE END TIM6_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM6_Init 1 */
+
+  /* USER CODE END TIM6_Init 1 */
+  htim6.Instance = TIM6;
+  htim6.Init.Prescaler = 959;
+  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim6.Init.Period = 9999;
+  htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM6_Init 2 */
+
+  /* USER CODE END TIM6_Init 2 */
 
 }
 
